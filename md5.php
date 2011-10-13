@@ -8,7 +8,7 @@ if (isset($_GET['md5'])) {
 ?>
 <html>
 	<body>
-		<form action="<?=$PHPSELF?>" method="get">
+		<form action="?" method="get">
 			String: <input name="md5" />
 		</form>
 	</body>

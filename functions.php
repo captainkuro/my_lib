@@ -118,7 +118,7 @@ function full_url_encode($uri) {
 }
 
 // Test drive
-echo full_url_encode('http://www.ancol.com/asdf lala/bubu[bibi]');
+// echo full_url_encode('http://www.ancol.com/asdf lala/bubu[bibi]');
 
 /**
  * Count interval from two datetime
