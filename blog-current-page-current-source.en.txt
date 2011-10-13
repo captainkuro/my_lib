@@ -1,0 +1,40 @@
+View the Current Page's Current Source Code
+===========================================
+
+Do you know that when you choose to "View Source" in your browser (Ctrl+U in Firefox).
+You will see the page source as it is delivered by the server. Any change made by
+the client-side script will not be seen. So, how do we see the current page CURRENT
+source code? I have been using Firebug for this, but just now I see somebody post
+the JavaScript code for this in <a href="http://www.kaskus.us/showthread.php?t=4246019" 
+target="_blank" >kaskus (Largest Indonesian Community)</a>.
+
+Here is the code he use:
+<pre lang="javascript">javascript:h=document.getElementsByTagName('html')[0].innerHTML;function%20disp(h){h=h.replace(/</g,'\n&lt;');h=h.replace(/>/g,'&gt;');document.getElementsByTagName('body')[0].innerHTML='<pre>&lt;html&gt;'+h.replace(/(\n|\r)+/g,'\n')+'&lt;/html&gt;</pre>';}void(disp(h));</pre>
+At a quick glance, this script will replace all "<" with "&lt;" and all ">" with
+"&gt;" inside the "<html>" tag thus removing all tags and make those tags readable.
+
+Let's break down the code:<!--more-->
+<ol>
+	<li>Retrieve a copy of the page HTML
+		<pre lang="javascript">h=document.getElementsByTagName('html')[0].innerHTML;</pre>
+	</li>
+	<li>Define a function to make all tags readable
+		<pre lang="javascript">function%20disp(h){h=h.replace(/</g,'\n&lt;');h=h.replace(/>/g,'&gt;');document.getElementsByTagName('body')[0].innerHTML='<pre>&lt;html&gt;'+h.replace(/(\n|\r)+/g,'\n')+'&lt;/html&gt;</pre>';}</pre>
+		<pre lang="javascript">function disp(h) {
+			h = h.replace(/</g, '\n&lt;');
+			h = h.replace(/>/g, '&gt;');
+			document.getElementsByTagName('body')[0].innerHTML = 
+				'<pre>&lt;html&gt;' + 
+				h.replace(/(\n|\r)+/g,'\n') +
+				'&lt;/html&gt;</pre>';
+		}</pre>
+		This is the main key of the script. First it will replace all "<" character
+		into "&lt;" and all ">" into "&gt;". After that, it will replace the content
+		of "<body>" into this replaced text.
+	</li>
+	<li>Run that function
+		<pre lang="javascript">void(disp(h));</pre>
+	</li>
+</ol>
+
+Wanna see it in action? Open any page and type this code in the address bar. Voila.

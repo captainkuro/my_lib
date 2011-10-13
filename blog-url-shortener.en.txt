@@ -1,0 +1,136 @@
+Very Simple URL Shortener
+=========================
+
+This past few days I have seen a trend of shorting URL in (me & my friend)'s Plurk.
+Then it struck me, why don't we create our owns? I have seen many URL shortener
+website, like u.nu, bit.ly, adf.ly, de.tk, kom.ps, tinyurl.com, etcetcetc...
+And I also have seen some PHP source code to create one of these. Well, just out
+of curiosity I want to create one from scratch.
+
+So what do we need? A storage for all URLs and their keys. Since this is just a
+simple URL shortener (input: 1 URL, output: 1 short URL), I use just one table:
+<pre lang="sql">CREATE TABLE IF NOT EXISTS `data` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `key` varchar(100) NOT NULL,
+  `url` text NOT NULL,
+  `visit` int(10) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `key` (`key`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1;</pre>
+
+'id' column is the primary key, 'key' column is the unique identifier of URL much 
+like "dGouHS" in http://bit.ly/dGouHS, 'url' column is the originial URL, and 
+'visit' column simply stores how many times the short URL visited.
+
+How does the app works? To keep it simple, I break down the app into many functions
+so that the "main program" is readable, like this:
+<pre lang="php">// The "main program", the code literally explains itself
+startup();
+if (is_requesting_url()) {
+	if (is_key_exist()) {
+		redirect_to_url();
+	} else {
+		display_page_with_error();
+	}
+} else if (is_submitting_url()) {
+	if (is_url_valid()) {
+		display_page_with_result();
+	} else {
+		display_page_with_error();
+	}
+} else {
+	display_page();
+}
+shutdown();</pre>
+
+Since all of the functions use no arguments, how could they communicate? Global variables?
+Since I don't really like writing "global $something" in every function, I use a
+class which only consists of public static variables as "global variables":
+<pre lang="php">// Global "variables" connecting all functions
+class G {
+	public static $full   = 'http://localhost/short.php/'; // CHANGEME
+	public static $base   = '/short.php/'; // CHANGEME
+	public static $conn   = null; // Database connection
+	public static $row    = null; // Last row retrieved 
+	public static $key    = null; // Key being requested or generated
+	public static $url    = null; // URL being submitted or retrieved
+	public static $error  = null; // Error message
+	public static $result = null; // Result message
+}</pre>
+
+This way I need only type "echo G::$full" instead of "global $full; echo $full".
+Instead of putting the entire source code here, I will only explain the concept
+behind what each function does and you can grab the entire source code at the end
+of this post (yeah, skip all the way down if you want).
+
+There are 3 actions possible in this app:
+<ol>
+	<li>Visitor requests a URL to a key</li>
+	<li>Visitor submits a URL to be shortened</li>
+	<li>Visitor sees the homepage</li>
+</ol>
+And here's the explanation for each function.
+
+<dl>
+	<dt>void startup()</dt>
+	<dd>System initialization, simply connecting to database</dd>
+	
+	<dt>void shutdown()</dt>
+	<dd>Terminate the database connection</dd>
+	
+	<dt>bool is_requesting_url()</dt>
+	<dd>Check whether this is the first action. 
+	If $_SERVER['REQUEST_URI'] contains a key then yes it is.
+	Assign value to G::$key.</dd>
+	
+	<dt>bool is_submitting_url()</dt>
+	<dd>Check whether this is the second action.
+	If $_POST['url'] is defined then yes it is.
+	Assign value to G::$url.</dd>
+	
+	<dt>bool is_key_exists()</dt>
+	<dd>Is the requested key exists in the database?
+	Try to fetch <code>SELECT * WHERE key=G::$key</code>.
+	Assign value to G::$row and G::$url.</dd>
+	
+	<dt>void redirect_to_url()</dt>
+	<dd>Send a redirection header.
+	Don't forget to increase the 'visit' value of G::$row.</dd>
+	
+	<dt>bool is_url_valid()</dt>
+	<dd>Check whether G::$url is a valid URL.
+	You could define "valid" here.
+	Also, insert a new entry if it is valid.
+	'key' column value is generated with <code>base_convert($id, 10, 37)</code>.</dd>
+	
+	<dt>void display_page()</dt>
+	<dd>Simply display the HTML of this app.
+	The HTML consist mainly of one form to submit new URL.</dd>
+	
+	<dt>void display_page_with_result()</dt>
+	<dd>Generate a result message and then display the HTML.</dd>
+	
+	<dt>void display_page_with_error()</dt>
+	<dd>Generate an error message and then display the HTML.</dd>
+</dl>
+
+You know what? I realize that this kind of concept (many functions, communicating 
+through a set of global variables) reminds me of Class and Object in OO. So, I 
+write a variant of this app in OO style, teaser:
+<pre lang="php">class Short {
+	private $full   = 'http://localhost/my_lib/short.class.php/'; // CHANGEME
+	private $base   = '/my_lib/short.class.php/'; // CHANGEME
+	private $conn   = null; // Database connection
+	private $row    = null; // Last row retrieved 
+	private $key    = null; // Key being requested or generated
+	private $url    = null; // URL being submitted or retrieved
+	private $error  = null; // Error message
+	private $result = null; // Result message
+
+	// The main program is broken down to these functions
+
+	public function startup() {
+</pre>
+All "G::$" replaced with "$this->" and all function calls get prefixed with "$this->".
+Finally, <a href="http://www.ziddu.com/download/13897818/simple-shortener.zip.html" target="_blank">the complete source</a>.
+And a <a href="http://shr.totalh.com">live demo</a>.
