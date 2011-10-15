@@ -11,6 +11,7 @@
  * // Will result <div id="isi"><span>asdf</span><div><span>george</span><img src="asdf.jpg" /></div></div>
  */
 class X {
+	/**/
 	public function __call($name, $params) {
 		$prex = '';
 		if (is_array(current($params))) { // To specify tag attributes, assign those as array in first argument
@@ -25,9 +26,24 @@ class X {
 		return "<$name$prex>" . implode('',$params) . "</$name>";
 	}
 	
+	// open tag only
+	public function _o($name, $args = array()) {
+		$prex = '';
+		foreach ($args as $k => $v) {
+			$prex .= ' ' . $k . '="' . str_replace('"', '&quot;', $v) . '"';
+		}
+		return "<$name$prex>";
+	}
+	
+	// close tag only
+	public function _c($name) {
+		return "</$name>";
+	}
+	/**/
+	
 	// If PHP >= 5.3.0
-	/*
-	public function __callStatic($name, $params) {
+	/**
+	public static function __callStatic($name, $params) {
 		$prex = '';
 		if (is_array(current($params))) { // To specify tag attributes, assign those as array in first argument
 			$args = array_shift($params);
@@ -40,10 +56,24 @@ class X {
 		}
 		return "<$name$prex>" . implode('',$params) . "</$name>";
 	}
-	*/
+	
+	// open tag only
+	public static function _o($name, $args = array()) {
+		$prex = '';
+		foreach ($args as $k => $v) {
+			$prex .= ' ' . $k . '="' . str_replace('"', '&quot;', $v) . '"';
+		}
+		return "<$name$prex>";
+	}
+	
+	// close tag only
+	public static function _c($name) {
+		return "</$name>";
+	}
+	/**/
 }
 
-/* Example: */
+/* Example: *
 $x = new X;
 echo 
 $x->div(array('id' => 'isi'), 
@@ -53,7 +83,7 @@ $x->div(array('id' => 'isi'),
 		$x->img(array('src' => 'asdf.jpg'))
 	)
 );
-
+/**/
 /* If PHP >= 5.3.0
 X::div(array('id' => 'isi'), 
 	X::span('asdf'), 
