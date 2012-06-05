@@ -1,7 +1,10 @@
 <?php
 /**
  * Wrapper for DataTables communication
+ * 
+ * Limitation: currently only supports one column sorting
  * @link http://datatables.net/
+ * 
  * @author Khandar William
  */
 abstract class Datatables
@@ -56,7 +59,6 @@ abstract class Datatables
 	/**
 	 * Receive the dataTables parameters
 	 * @param array $params the parameters from datatables
-	 * @todo Filtering
 	 */
 	public function __construct($params)
 	{
