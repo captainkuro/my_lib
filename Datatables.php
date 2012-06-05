@@ -167,7 +167,6 @@ abstract class Datatables
 	abstract public function getTotalDisplayRecords();
 	
 	/**
-	 * Needs to be overriden
 	 * Return the data based on DataTables parameters acquired
 	 * @return array an array of rows as sequential arrays
 	 */
