@@ -33,7 +33,8 @@ class ScandirWrapper {
 
 	protected function recurse($start_dir) {
 		$list = scandir($start_dir);
-		foreach ($list as $name) {
+		for ($i=0, $n=count($list); $i<$n; ++$i) {
+			$name = $list[$i];
 			if ($name != '.' && $name != '..') {
 				$path = $start_dir.'/'.$name;
 				if (is_dir($path)) {
@@ -53,7 +54,7 @@ function browse_with_scandir($start_dir) {
 	return $scanner->browse($start_dir);
 }
 
-$to_browse = 'D:\xampp\htdocs\crawler';
+$to_browse = '/var/www/kaspay-1.6/application/models';
 
 $before = microtime(true);
 $iterator_result = browse_with_iterator($to_browse);
