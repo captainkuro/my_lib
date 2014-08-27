@@ -41,17 +41,21 @@ class HostsFile {
 	}
 
 	public function delete_ip($ip) {
-		foreach ($this->ip_lines[$ip] as $i) {
-			unset($this->complete[$i]);
+		if (isset($this->ip_lines[$ip])) {
+			foreach ($this->ip_lines[$ip] as $i) {
+				unset($this->complete[$i]);
+			}
+			$this->refresh();
 		}
-		$this->refresh();
 	}
 
 	public function delete_domain($domain) {
-		foreach ($this->domain_lines[$domain] as $i) {
-			unset($this->complete[$i]);
+		if (isset($this->domain_lines[$domain])) {
+			foreach ($this->domain_lines[$domain] as $i) {
+				unset($this->complete[$i]);
+			}
+			$this->refresh();
 		}
-		$this->refresh();
 	}
 
 	public function encode() {
@@ -63,8 +67,8 @@ class HostsFile {
 	}
 }
 
-$x = new HostsFile();
-$x->delete_domain('deepsea.co.id');
-$x->add('8.8.8.8', 'google.com');
-$x->delete_domain('www.deepsea.co.id');
-echo $x->encode();
+// $x = new HostsFile();
+// $x->delete_domain('deepsea.co.id');
+// $x->add('8.8.8.8', 'google.com');
+// $x->delete_domain('www.deepsea.co.id');
+// echo $x->encode();
