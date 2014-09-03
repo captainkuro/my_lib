@@ -1,6 +1,11 @@
 <?php
 require_once 'HostsFile.php';
 
+class OPTION {
+	public static $DEBUG = false;
+	public static $HOSTS = 'C:\Windows\System32\drivers\etc\hosts';
+}
+
 class Domain2Ip {
 
 	private $driver;
@@ -11,17 +16,23 @@ class Domain2Ip {
 		$this->hosts = $hosts;
 	}
 
-	public function add_all_ips($start_domain, $pattern_add) {
+	public function add_all_ips($start_domain, $pattern_add, $start_url = null) {
 		$this->add_ip($start_domain);
 		$this->hosts->save();
 
-		$url = 'http://'.$start_domain;
-		$raw = file_get_contents($url);
+		if (!$start_url) {
+			$start_url = 'http://'.$start_domain;
+		}
+		$raw = file_get_contents($start_url);
 		$pattern = '/https?:\/\/([\w\.]+)/';
 		
 		if (preg_match_all($pattern, $raw, $m)) {
 			$addresses = array_unique($m[1]);
-			print_r($addresses);exit;//debug
+
+			if (OPTION::$DEBUG) {
+				print_r($addresses);exit;//debug
+			}
+
 			foreach ($addresses as $domain) {
 				if (preg_match($pattern_add, $domain)) {
 					$this->add_ip($domain);
@@ -56,7 +67,13 @@ abstract class Ip_Driver_Abstract {
 
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-		return curl_exec($ch);
+
+		$retry = 10;
+		$response = curl_exec($ch);
+		while (!$response && $retry--) {
+			$response = curl_exec($ch);
+		}
+		return $response;
 	}
 
 	public abstract function get_ip($domain);
@@ -81,7 +98,45 @@ class Ip_Driver_IpLookup extends Ip_Driver_Abstract {
 	}
 }
 
-$driver = new Ip_Driver_IpLookup();
-$hosts = new HostsFile('C:\Windows\System32\drivers\etc\hosts');
-$d2ip = new Domain2Ip($driver, $hosts);
-$d2ip->add_all_ips('www.imagefap.com', '/pururin/');
+function obtain_option($code, $default = '') {
+	global $argv;
+
+	for ($i=1, $n=count($argv); $i<$n; $i++) {
+		$part = "-{$code}=";
+		if (strpos($argv[$i], $part) === 0) {
+			return substr($argv[$i], strlen($part));
+		}
+	}
+	return $default;
+}
+
+if (count($argv) < 3) {
+	$help = <<<HELP
+
+php Domain2Ip.php <DOMAIN> <PATTERN> [-s=<START_URL>] [-d=<0/1>] [-h=<HOST_FILE>]
+
+Options:
+  <DOMAIN>      : the first domain to be added to hosts file so we can 
+                  open <START_URL>
+  <PATTERN>     : regex to match which domain to be added
+  -s=<START_URL>: by default <DOMAIN> will be used to grab the other domains
+  -d=<0/1>      : if 1 then all domain candidates will be printed out but not 
+                  added
+  -h=<HOST_FILE>: where the hosts file is located
+
+HELP;
+	echo $help;
+} else {
+	$domain = $argv[1];
+	$pattern = $argv[2];
+
+	$start_url = obtain_option('s', null);
+	OPTION::$DEBUG = (bool)obtain_option('d', false);
+	OPTION::$HOSTS = obtain_option('h', OPTION::$HOSTS);
+
+	$driver = new Ip_Driver_IpLookup();
+	$hosts = new HostsFile(OPTION::$HOSTS);
+	$d2ip = new Domain2Ip($driver, $hosts);
+	$d2ip->add_all_ips($domain, $pattern, $start_url);
+
+}
