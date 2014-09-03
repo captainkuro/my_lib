@@ -1,0 +1,241 @@
+<label class="required"><em>*</em><?php echo $this->__('Category') ?>:</label>
+<div class="input-box" style="width:auto">
+    <div>
+        Search
+        <input type="text" id="category-search-input" />
+        <button type="button" id="category-search-button">Search</button>
+    </div>
+    <div id="category-tabs">
+        <ul>
+            <li><a href="#category-tab-0">Browse Categories</a></li>
+            <li><a href="#category-tab-1">Search Categories</a></li>
+        </ul>
+        <div class="category-container" id="category-tab-0">
+        </div>
+        <div class="category-container" id="category-tab-1">
+            Search something
+        </div>
+    </div>
+    Selected: <span id="selected-category">-</span>
+</div>
+<input type="hidden" name="category_id" id="category_id" class="required-entry" />
+
+<script type="text/javascript">
+(function (global, $) {
+    "use strict";
+
+    function CategoryItem(id) {
+        this.id = id;
+        this.label = '';
+        this.parent = null;
+        this.level = 0;
+        this.children = [];
+    }
+
+    CategoryItem.prototype.getLabel = function () {
+        var label = this.label;
+        if (this.children.length > 0) {
+            label += " >";
+        }
+        return label;
+    };
+
+    CategoryItem.prototype.getBreadcrumb = function () {
+        var item = this;
+        var label = item.label;
+
+        while (item.parent) {
+            item = item.parent;
+            label = item.label + " > " + label;
+        }
+        return label;
+    };
+
+    function CategoryTree(raw) {
+        this.items = {};
+        this.tree = this.parseTree(raw, null, 0);
+    }
+
+    CategoryTree.prototype.parseTree = function (tree, parent, level) {
+        var result = [];
+        var i, n, item;
+        for (i = 0, n = tree.length; i < n; i++) {
+            item = this.getItem(tree[i].id);
+            item.label = tree[i].label;
+            item.parent = parent;
+            item.level = level;
+            item.children = this.parseTree(tree[i].children, item, level + 1);
+            result.push(item);
+        }
+        return result;
+    };
+
+    CategoryTree.prototype.getItem = function (id) {
+        if (!this.items.hasOwnProperty(id)) {
+            this.items[id] = new CategoryItem(id);
+        }
+        return this.items[id];
+    };
+
+    CategoryTree.prototype.search = function (term) {
+        var i, r, result = [];
+
+        for (i in this.items) {
+            if (this.items.hasOwnProperty(i)) {
+                r = new RegExp(term, 'i');
+                if (this.items[i].label.match(r)) {
+                    result.push(this.items[i]);
+                }
+            }
+        }
+        return result;
+    };
+
+    function CategoryBrowse(tree, id) {
+        var self = this;
+
+        this.$hidden = $('#' + id.input);
+        this.$selected = $('#' + id.selected);
+        this.$container = $('#' + id.container);
+        this.tree = tree;
+        this.elements = [];
+
+        this.$container.on('change', 'select', function (e) {
+            self.selectItem(this.value);
+        });
+        this.createSelect(this.tree.tree, 0);
+    }
+
+    CategoryBrowse.prototype.createSelect = function (items, level) {
+        // bug in webkit: select element cannot use 'size' directly without 'multiple'
+        var $select = $('<select>', {style: 'height:200px;width:auto'});
+        $select.attr('size', '10');
+        $select.html(this.createOptionsHtml(items));
+
+        this.elements[level] = $select;
+        this.$container.append($select);
+        return $select;
+    };
+
+    CategoryBrowse.prototype.createOptionsHtml = function (items) {
+        var i, n, item, option,
+            htmlOptions = '';
+
+        for (i = 0, n = items.length; i < n; i++) {
+            item = items[i];
+            option = '<option value="' + item.id + '">' + item.getLabel() + '</option>';
+            htmlOptions = htmlOptions + option;
+        }
+        return htmlOptions;
+    };
+
+    CategoryBrowse.prototype.selectItem = function (id) {
+        var item = this.tree.getItem(id);
+        var i, n;
+
+        for (i = item.level + 1, n = this.elements.length; i < n; i++) {
+            if (this.elements[i]) {
+                this.elements[i].remove();
+                this.elements[i] = null;
+            }
+        }
+
+        if (item.children.length > 0) {
+            this.createSelect(item.children, item.level + 1);
+        }
+        this.$hidden.val(id);
+        this.$selected.html(item.getBreadcrumb());
+    };
+
+    CategoryBrowse.prototype.setDefault = function (id) {
+        var item = this.tree.getItem(id);
+        var queue = [item.id];
+        var i, n;
+
+        while (item.parent) {
+            item = item.parent;
+            queue.unshift(item.id);
+        }
+
+        for (i = 0, n = queue.length; i < n; i++) {
+            this.elements[i].val(queue[i]);
+            this.selectItem(queue[i]);
+        }
+    };
+
+    function CategorySearch(tree, id, tabIndex, browse) {
+        var self = this;
+
+        this.tree = tree;
+        this.$term = $('#' + id.term);
+        this.$button = $('#' + id.button);
+        this.$container = $('#' + id.container);
+        this.$tabs = $('#' + id.tabs);
+        this.index = tabIndex;
+        this.browse = browse;
+
+        this.$container.on('click', 'input[type="radio"]', function (e) {
+            self.selectItem(this.value);
+        });
+
+        this.$button.on('click', function (e) {
+            self.searchTerm(self.$term.val());
+        });
+    }
+
+    CategorySearch.prototype.searchTerm = function (term) {
+        var matches = this.tree.search(term);
+
+        this.$container.html(this.createInputsHtml(matches, term));
+        this.$tabs.tabs('option', 'active', this.index);
+    };
+
+    CategorySearch.prototype.createInputsHtml = function (items, term) {
+        var i, n, item, highlight,
+            html = '<ul>';
+
+        highlight = new RegExp('(' + term + ')', 'ig');
+        for (i = 0, n = items.length; i < n; i++) {
+            item = items[i];
+            html += '<li>' +
+                '<input type="radio" value="' + item.id + '" name="cat_search" /> ' +
+                item.getBreadcrumb().replace(highlight, '<b>$1</b>') +
+                '</li>';
+        }
+        html += '</ul>';
+
+        if (items.length === 0) {
+            html = 'No match found';
+        }
+
+        return html;
+    };
+
+    CategorySearch.prototype.selectItem = function (id) {
+        var item = this.tree.getItem(id);
+        this.browse.setDefault(id);
+    };
+
+    var TREE = <?php echo json_encode($this->getCategoryTree()); ?>;
+    var CTree = new CategoryTree(TREE);
+    var CBrowse = new CategoryBrowse(CTree, {
+        input: 'category_id', 
+        selected: 'selected-category', 
+        container: 'category-tab-0'
+    });
+    var CSearch = new CategorySearch(CTree, {
+        term: 'category-search-input', 
+        button: 'category-search-button', 
+        container: 'category-tab-1', 
+        tabs: 'category-tabs'
+    }, 1, CBrowse);
+
+    <?php $values = $this->getValues(); ?>
+    <?php if ($values['category_id']): ?>
+        CBrowse.setDefault(<?php echo json_encode($values['category_id']); ?>);
+    <?php endif; ?>
+    
+    $('#category-tabs').tabs();
+    
+}(window, jQuery));
+</script>
