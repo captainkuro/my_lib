@@ -81,7 +81,21 @@ class Ip_Driver_IpLookup extends Ip_Driver_Abstract {
 	}
 }
 
-$driver = new Ip_Driver_IpLookup();
-$hosts = new HostsFile('C:\Windows\System32\drivers\etc\hosts');
-$d2ip = new Domain2Ip($driver, $hosts);
-$d2ip->add_all_ips('www.imagefap.com', '/pururin/');
+if (!isset($argv) || count($argv) < 3) {
+	$help = <<<HELP
+
+Usage: php Domain2Ip.php <domain> <pattern>
+
+  domain: e.g. google.com
+  pattern: regex to match which domain names to be added as well
+           e.g. /google/
+
+
+HELP;
+	echo $help;
+} else {
+	$driver = new Ip_Driver_IpLookup();
+	$hosts = new HostsFile('C:\Windows\System32\drivers\etc\hosts');
+	$d2ip = new Domain2Ip($driver, $hosts);
+	$d2ip->add_all_ips($argv[1], $argv[2]);
+}
