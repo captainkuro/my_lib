@@ -171,7 +171,7 @@ A::$classes = [
     ],
 ],
 'summoner' => [
-    'cost' => 0,
+    'cost' => 500,
     'ratio' => 8,
     'level' => [],
     'need' => [
