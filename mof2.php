@@ -199,17 +199,16 @@ A::$classes = [
 'priest' => [
     'cost' => 550,
     'ratio' => 9,
-    'level' => [687, 824, 961], // 137, 137, 138
-    'need' => [
+    'level' => [687, 824, 961], // 137, 137, 138    'need' => [
         'healer' => 125,
         'alchemist' => 86,
         'cleric' => 75,
     ],
 ],
 'royalguard' => [
-    'cost' => 0,
+    'cost' => 600,
     'ratio' => 10,
-    'level' => [],
+    'level' => [752, 905, 1057, 1210], // 152, 153
     'need' => [
         'soldier' => 200,
         'warrior' => 150,
@@ -222,9 +221,9 @@ A::$classes = [
     ],
 ],
 'wizard' => [
-    'cost' => 0,
+    'cost' => 600,
     'ratio' => 10,
-    'level' => [],
+    'level' => [752, 905, 1057, 1210], // 152, 153
     'need' => [
         'healer' => 200,
         'sorcerer' => 200,
@@ -278,6 +277,19 @@ function sort_req($need) {
     return $need;
 }
 
+function count_cost($need) {
+    $cost = 0;
+    foreach ($need as $class => $level) {
+        $data = A::$classes[$class];
+        $a = $data['cost'];
+        $d = $data['level'][0] - $data['cost'];
+        $n = $level;
+
+        $cost += ($n * (2 * $a + ($n - 1) * $d)) / 2;
+    }
+    return $cost;
+}
+
 if (!isset($argv[1])) {
     echo "php mof2.php [class name] // can put multiple class names\n";
     return;
@@ -288,3 +300,39 @@ foreach ($classes as $class) {
     $result = combine_req($result, find_req($class));
 }
 print_r(sort_req($result));
+
+echo 'Cost:';
+echo number_format(count_cost($result));
+echo "\n";
+
+$min_need = array (
+  'soldier' => 260,
+  'archer' => 260,
+  'scout' => 150,
+  'thief' => 150,
+  'healer' => 200,
+  'warrior' => 150,
+  'sniper' => 120,
+  'sorcerer' => 200,
+  'knight' => 150,
+  'ninja' => 100,
+  'alchemist' => 150,
+  'temple knight' => 150,
+  'cannoneer' => 90,
+  'necromancer' => 120,
+  // 'nightmare' => 156,
+  'assassin' => 90,
+  'cleric' => 155,
+  'paladin' => 150,
+  'meister' => 85,
+  'summoner' => 120,
+  // 'holy knight' => 100,
+  // 'shadow knight' => 100,
+  'priest' => 100,
+  // 'royalguard' => 65,
+  // 'wizard' => 45,
+);
+echo 'Min set level: '.array_sum($min_need)."\n";
+echo 'Cost my min set:';
+echo number_format(count_cost($min_need));
+echo "\n";
