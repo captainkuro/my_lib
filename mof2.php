@@ -307,8 +307,8 @@ echo number_format(count_cost($result));
 echo "\n";
 
 $min_need = array (
-  'soldier' => 227,
-  'archer' => 227,
+  'soldier' => 260,
+  'archer' => 260,
   'scout' => 150,
   'thief' => 150,
   'healer' => 200,
@@ -321,17 +321,17 @@ $min_need = array (
   'temple knight' => 150,
   'cannoneer' => 90,
   'necromancer' => 120,
-  'nightmare' => 156,
+  // 'nightmare' => 156,
   'assassin' => 90,
   'cleric' => 155,
   'paladin' => 150,
   'meister' => 85,
   'summoner' => 120,
-  'holy knight' => 100,
-  'shadow knight' => 100,
+  // 'holy knight' => 100,
+  // 'shadow knight' => 100,
   'priest' => 100,
-  'royalguard' => 65,
-  'wizard' => 45,
+  // 'royalguard' => 65,
+  // 'wizard' => 45,
 );
 echo 'Min set level: '.array_sum($min_need)."\n";
 echo 'Cost my min set:';
