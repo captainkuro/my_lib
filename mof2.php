@@ -173,7 +173,7 @@ A::$classes = [
 'summoner' => [
     'cost' => 500,
     'ratio' => 8,
-    'level' => [],
+    'level' => [622], // 122
     'need' => [
         'sorcerer' => 115,
         'alchemist' => 72,
@@ -199,7 +199,7 @@ A::$classes = [
 'priest' => [
     'cost' => 550,
     'ratio' => 9,
-    'level' => [],
+    'level' => [687], // 137, 137, 138
     'need' => [
         'healer' => 125,
         'alchemist' => 86,
@@ -278,6 +278,19 @@ function sort_req($need) {
     return $need;
 }
 
+function count_cost($need) {
+    $cost = 0;
+    foreach ($need as $class => $level) {
+        $data = A::$classes[$class];
+        $a = $data['cost'];
+        $d = $data['level'][0] - $data['cost'];
+        $n = $level;
+
+        $cost += ($n * (2 * $a + ($n - 1) * $d)) / 2;
+    }
+    return $cost;
+}
+
 if (!isset($argv[1])) {
     echo "php mof2.php [class name] // can put multiple class names\n";
     return;
@@ -288,3 +301,7 @@ foreach ($classes as $class) {
     $result = combine_req($result, find_req($class));
 }
 print_r(sort_req($result));
+
+echo 'Cost:';
+echo number_format(count_cost($result));
+echo "\n";
