@@ -199,7 +199,8 @@ A::$classes = [
 'priest' => [
     'cost' => 550,
     'ratio' => 9,
-    'level' => [687, 824, 961], // 137, 137, 138    'need' => [
+    'level' => [687, 824, 961], // 137, 137, 138    
+    'need' => [
         'healer' => 125,
         'alchemist' => 86,
         'cleric' => 75,
@@ -312,25 +313,25 @@ $min_need = array (
   'thief' => 150,
   'healer' => 200,
   'warrior' => 150,
-  'sniper' => 120,
+  'sniper' => 150,
   'sorcerer' => 200,
   'knight' => 150,
-  'ninja' => 100,
+  'ninja' => 120,
   'alchemist' => 150,
   'temple knight' => 150,
   'cannoneer' => 90,
   'necromancer' => 120,
-  // 'nightmare' => 156,
+  'nightmare' => 156,
   'assassin' => 90,
   'cleric' => 155,
   'paladin' => 150,
   'meister' => 85,
   'summoner' => 120,
-  // 'holy knight' => 100,
-  // 'shadow knight' => 100,
+  'holy knight' => 100,
+  'shadow knight' => 100,
   'priest' => 100,
-  // 'royalguard' => 65,
-  // 'wizard' => 45,
+  'royalguard' => 65,
+  'wizard' => 50,
 );
 echo 'Min set level: '.array_sum($min_need)."\n";
 echo 'Cost my min set:';
